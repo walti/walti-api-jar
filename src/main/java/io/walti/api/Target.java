@@ -2,6 +2,7 @@ package io.walti.api;
 
 import io.walti.api.exceptions.WaltiApiException;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 
@@ -148,6 +149,9 @@ public class Target {
                 throw new WaltiApiException();
             }
             String body = IOUtils.toString(res, Charset.forName("UTF-8"));
+            if ("NOT ALLOWED".equals(body)) {
+                throw new WaltiApiException("APIキーまたはシークレットが正しくありません");
+            }
             return Target.createFromJSON((JSONObject) JSONSerializer.toJSON(body));
         } catch (IOException e) {
             throw new WaltiApiException(e);
@@ -170,10 +174,13 @@ public class Target {
         try {
             res = api.get("/v1/targets");
             String body = IOUtils.toString(res, Charset.forName("UTF-8"));
-            JSONArray targetArr = (JSONArray)JSONSerializer.toJSON(body);
+            if ("NOT ALLOWED".equals(body)) {
+                throw new WaltiApiException("APIキーまたはシークレットが正しくありません");
+            }
+            JSONArray targetArr = (JSONArray) JSONSerializer.toJSON(body);
             List<Target> targets = new ArrayList<Target>();
             for (Object target : targetArr) {
-                targets.add(Target.createFromJSON((JSONObject)target));
+                targets.add(Target.createFromJSON((JSONObject) target));
             }
             return targets;
         } catch (IOException e) {
